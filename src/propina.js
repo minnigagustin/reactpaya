@@ -348,20 +348,18 @@ class Propina extends Component {
       {
         name: "Motorizado",
         sortable: true,
-        cell: (row) => {
-          return (
-            <div>
-              <button
-                className="btn btn-success"
-                onClick={() => {
-                  this.seleccionarNoti(row);
-                }}
-              >
-                {row.fleet_name}
-              </button>
-            </div>
-          );
-        },
+        cell: (row) => (
+          <div>
+            <button
+              className="btn btn-success"
+              onClick={() => {
+                this.seleccionarNoti(row);
+              }}
+            >
+              {row.fleet_name}
+            </button>
+          </div>
+        ),
       },
     ];
 
