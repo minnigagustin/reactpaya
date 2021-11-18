@@ -4,6 +4,7 @@ import moment from "moment";
 import DataTable from "react-data-table-component";
 import ReactExport from "react-data-export";
 import DatePicker from "react-datepicker";
+import { default as ReactSelect, components } from "react-select";
 
 import ModalEliminar from "./ModalEliminar";
 import ModalInsertar from "./ModalInsertar";
@@ -17,6 +18,21 @@ const ExcelFile = ReactExport.ExcelFile;
 const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
 const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
+const Option = (props) => {
+  return (
+    <div>
+      <components.Option {...props}>
+        <input
+          type="checkbox"
+          checked={props.isSelected}
+          onChange={() => null}
+        />{" "}
+        <label>{props.label}</label>
+      </components.Option>
+    </div>
+  );
+};
+
 const Propina = () => {
   const isDevelopment = process.env.NODE_ENV === "development";
   const [isLoading, setIsLoading] = React.useState(false);
@@ -27,6 +43,8 @@ const Propina = () => {
   const [modalEliminar, setModalEliminar] = React.useState(false);
   const [dateFilter, setDateFilter] = React.useState(new Date());
   const [searchFilter, setSearchFilter] = React.useState("");
+  const [comerciosFilter, setComerciosFilter] = React.useState([]);
+  const [optionsComercios, setOptionsComercios] = React.useState([]);
   const [searchTimeout, setSearchTimeout] = React.useState();
   const [form, setForm] = React.useState({
     id: "",
@@ -58,32 +76,64 @@ const Propina = () => {
     const jobList = _.get(job_and_fleet_details.data, "data.teams.449045.jobs");
     const jobsNumbers = _.map(jobList, "job_id");
     const jobsNumbersSplit = _.chunk(jobsNumbers, 100);
-    var arraynuevo = [];
 
-    for (const jobNumberArray of jobsNumbersSplit) {
-      const job_details = await api.get_job_details({
-        job_ids: jobNumberArray,
-        include_task_history: 0,
-      });
-      const jobsListDetails = _.get(job_details.data, "data");
-
-      arraynuevo = _.concat(arraynuevo, jobsListDetails);
-      const resultad = _.filter(arraynuevo, { job_status: 2 });
-      const nashe = _.filter(resultad, "order_id");
-      const result = _.filter(nashe, { job_type: 1 });
-      const resulta = result.filter(
-        (item) => item.custom_field[11].label !== "Items"
-      );
-      const resultadaWithFleetName = resulta.map((res) => {
-        const fleetName = jobList.find(
-          (job) => job.job_id === res.job_id
-        ).fleet_name;
-        return { ...res, fleet_name: fleetName };
-      });
-      setData(resultadaWithFleetName);
-      setDataBackup(resultadaWithFleetName);
-      setIsLoading(false);
+    const job_details = await Promise.all(
+      jobsNumbersSplit.map((jobNumberArray) =>
+        api.get_job_details({
+          job_ids: jobNumberArray,
+          include_task_history: 0,
+        })
+      )
+    );
+    const jobsListDetails = _.flatten(
+      job_details.map((job_details) => job_details.data)
+    );
+    const resultadoFilteredByJobStatus = _.filter(jobsListDetails, {
+      job_status: 2,
+    });
+    const resultadoFilteredByOrderId = _.filter(
+      resultadoFilteredByJobStatus,
+      "order_id"
+    );
+    const resultadoFilteredByJobType = _.filter(resultadoFilteredByOrderId, {
+      job_type: 1,
+    });
+    const resultadoFilteredByItemLabel = resultadoFilteredByJobType.filter(
+      (item) => item.custom_field[11].label !== "Items"
+    );
+    const resultadoFilteredByComercio = resultadoFilteredByItemLabel.filter(
+      (item) => {
+        console.info("FILTRO", item.job_pickup_name, comerciosFilter);
+        return comerciosFilter.length > 0
+          ? !!comerciosFilter.find(
+              (comercio) => comercio.value === item.job_pickup_name
+            )
+          : true;
+      }
+    );
+    const resultadoWithFleetName = resultadoFilteredByComercio.map((res) => {
+      const fleetName = jobList.find(
+        (job) => job.job_id === res.job_id
+      ).fleet_name;
+      return { ...res, fleet_name: fleetName };
+    });
+    console.info({ resultadoWithFleetName });
+    if (!optionsComercios.length) {
+      const listOfComercios = [
+        ...new Set(
+          resultadoWithFleetName.map((item) => ({
+            value: item.job_pickup_name,
+            label: item.job_pickup_name,
+          }))
+        ),
+      ];
+      setOptionsComercios(listOfComercios);
+      setComerciosFilter(listOfComercios);
     }
+
+    setData(resultadoWithFleetName);
+    setDataBackup(resultadoWithFleetName);
+    setIsLoading(false);
   };
 
   const handleChange = async (e) => {
@@ -132,8 +182,8 @@ const Propina = () => {
   };
 
   useEffect(() => {
-    fetchJobs(dateFilter, searchFilter);
-  }, [dateFilter, searchFilter]);
+    fetchJobs();
+  }, [dateFilter, searchFilter, comerciosFilter]);
 
   const handleSearchChange = (e) => {
     if (searchTimeout) clearTimeout(searchTimeout);
@@ -143,6 +193,19 @@ const Propina = () => {
       }, 500)
     );
   };
+
+  const comercios = [
+    { value: "ocean1", label: "Ocean" },
+    { value: "blue", label: "Blue" },
+    { value: "purple", label: "Purple" },
+    { value: "red", label: "Red" },
+    { value: "orange", label: "Orange" },
+    { value: "yellow", label: "Yellow" },
+    { value: "green", label: "Green" },
+    { value: "forest", label: "Forest" },
+    { value: "slate", label: "Slate" },
+    { value: "silver", label: "Silver" },
+  ];
 
   return (
     <div className="App">
@@ -163,6 +226,22 @@ const Propina = () => {
             Buscar:
             <br />
             <input placeholder="Buscar..." onChange={handleSearchChange} />
+          </div>
+          <div class="col-sm">
+            Comercios:
+            <br />
+            <ReactSelect
+              options={optionsComercios}
+              isMulti
+              closeMenuOnSelect={false}
+              hideSelectedOptions={false}
+              components={{ Option }}
+              onChange={(selected) => {
+                setComerciosFilter(selected);
+              }}
+              allowSelectAll={true}
+              value={comerciosFilter}
+            />
           </div>
         </div>
       </div>
