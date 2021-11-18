@@ -3,12 +3,14 @@ import _ from "lodash";
 import moment from "moment";
 import DataTable from "react-data-table-component";
 import ReactExport from "react-data-export";
+import DatePicker from "react-datepicker";
 
 import ModalEliminar from "./ModalEliminar";
 import ModalInsertar from "./ModalInsertar";
 
 import "../App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "react-datepicker/dist/react-datepicker.css";
 import api from "../api";
 
 const ExcelFile = ReactExport.ExcelFile;
@@ -16,12 +18,16 @@ const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
 const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
 const Propina = () => {
+  const isDevelopment = process.env.NODE_ENV === "development";
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = React.useState([]);
   const [dataBackup, setDataBackup] = React.useState([]);
   const [total, setTotal] = React.useState(0);
   const [modalInsertar, setModalInsertar] = React.useState(false);
   const [modalEliminar, setModalEliminar] = React.useState(false);
+  const [dateFilter, setDateFilter] = React.useState(new Date());
+  const [searchFilter, setSearchFilter] = React.useState("");
+  const [searchTimeout, setSearchTimeout] = React.useState();
   const [form, setForm] = React.useState({
     id: "",
     nombre: "",
@@ -38,12 +44,15 @@ const Propina = () => {
   const [noti, setNoti] = React.useState({ id: 0, nombre: "", total: 0 });
   const [tipoModal, setTipoModal] = React.useState("");
 
-  const firstLoad = async () => {
+  const fetchJobs = async () => {
     setIsLoading(true);
     const job_and_fleet_details = await api.get_job_and_fleet_details({
       team_id: "449045",
-      date: moment().subtract(8, "days").format("YYYY-MM-DD"),
+      date: dateFilter
+        ? moment(dateFilter).subtract(8, "days").format("YYYY-MM-DD")
+        : moment().subtract(8, "days").format("YYYY-MM-DD"),
       ignore_fleets: "0",
+      search_string: !!searchFilter ? searchFilter : "",
     });
 
     const jobList = _.get(job_and_fleet_details.data, "data.teams.449045.jobs");
@@ -96,14 +105,14 @@ const Propina = () => {
     };
     setIsLoading(true);
     const transaccion = await api.create_transaction(datowallet);
-    console.info({ transaccion });
 
     const fleet_profile = await api.view_fleet_profile(order.fleet_id);
-    setData((data) =>
-      data.filter(function (job) {
+    setData((data) => {
+      console.info({ data, order });
+      return data.filter((job) => {
         return job.job_id !== order.job_id;
-      })
-    );
+      });
+    });
     setTotal(0);
     setNoti({
       id: order.fleet_id,
@@ -111,48 +120,52 @@ const Propina = () => {
         fleet_profile.data.data.fleet_details[0].first_name +
         " " +
         fleet_profile.data.data.fleet_details[0].last_name,
-      total: (
-        order.custom_field[11].data -
-        (order.custom_field[11].data * 3.5) / 100
-      ).toFixed(2),
+      total: !isDevelopment
+        ? (
+            order.custom_field[11].data -
+            (order.custom_field[11].data * 3.5) / 100
+          ).toFixed(2)
+        : 0,
     });
     setModalEliminar((modalEliminar) => !modalEliminar);
     setIsLoading(false);
   };
 
-  const onChangeSearch = async (e) => {
-    e.persist();
-    console.info(e.target.value);
-    if (e.target.value === "") {
-      setData(dataBackup);
-      return;
-    }
-
-    const newData = data.filter(function (item) {
-      const hasId = String(item.job_id).indexOf(e.target.value) > -1;
-      const hasName =
-        item.job_pickup_name
-          ?.toLowerCase()
-          .indexOf(e.target.value.toLowerCase()) > -1;
-      const hasFleetName =
-        item.fleet_name?.toLowerCase().indexOf(e.target.value.toLowerCase()) >
-        -1;
-      return hasId || hasName || hasFleetName;
-    });
-
-    setData(newData);
-  };
-
   useEffect(() => {
-    firstLoad();
-  }, []);
+    fetchJobs(dateFilter, searchFilter);
+  }, [dateFilter, searchFilter]);
+
+  const handleSearchChange = (e) => {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    setSearchTimeout(
+      setTimeout(() => {
+        setSearchFilter(e.target.value);
+      }, 500)
+    );
+  };
 
   return (
     <div className="App">
       <br />
       <h1>PROPINAS</h1>
       <br />
-      <input placeholder="Buscar..." onChange={onChangeSearch} />
+      <div class="container">
+        <div class="row">
+          <div class="col-sm">
+            Fecha:
+            <br />
+            <DatePicker
+              selected={dateFilter}
+              onChange={(date) => setDateFilter(date)}
+            />
+          </div>
+          <div class="col-sm">
+            Buscar:
+            <br />
+            <input placeholder="Buscar..." onChange={handleSearchChange} />
+          </div>
+        </div>
+      </div>
       <ExcelFile
         filename="reporte"
         element={
