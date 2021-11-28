@@ -103,16 +103,24 @@ const Panel = () => {
   const fetchOrders = async () => {
     setProgress(true);
     let query = firebase.firestore().collection("orders_flattened");
-    if (!!filterSearch) {
-      query = query.where("restaurant_name", "==", filterSearch);
-    }
     query
       .orderBy("accepted_at")
       .startAt(moment(desde).format("YYYY-MM-DD"))
       .endAt(moment(hasta).format("YYYY-MM-DD"))
       .get()
       .then((item) => {
-        const items = item.docs.map((doc) => doc.data());
+        let items = item.docs.map((doc) => doc.data());
+
+        if (filterSearch !== "") {
+          items = items.filter((item) => {
+            return (
+              item.restaurant_name
+                .toUpperCase()
+                .indexOf(filterSearch.toUpperCase()) > -1
+            );
+          });
+        }
+
         setData(items);
         setProgress(false);
       });
@@ -120,7 +128,7 @@ const Panel = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [filterSearch, desde, hasta]);
+  }, [desde, hasta]);
 
   return (
     <div className="App">
@@ -165,6 +173,7 @@ const Panel = () => {
           className="form-control"
           placeholder="Buscar..."
           onChange={onChangeSearch}
+          onBlur={onChangeSearch}
         />
         <br />
         <Row>
