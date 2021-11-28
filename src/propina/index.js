@@ -118,18 +118,20 @@ const Propina = () => {
       return { ...res, fleet_name: fleetName };
     });
     console.info({ resultadoWithFleetName });
-    if (!optionsComercios.length) {
-      const listOfComercios = [
-        ...new Set(
-          resultadoWithFleetName.map((item) => ({
-            value: item.job_pickup_name,
-            label: item.job_pickup_name,
-          }))
-        ),
-      ];
-      setOptionsComercios(listOfComercios);
-      setComerciosFilter(listOfComercios);
-    }
+    const listOfComercios = [
+      ...new Set(
+        resultadoWithFleetName.map((item) => ({
+          value: item.job_pickup_name,
+          label: item.job_pickup_name,
+        }))
+      ),
+    ];
+    const uniqComercios = _.uniqBy(
+      listOfComercios,
+      (comercio) => comercio.label
+    );
+    setOptionsComercios(_.uniq(uniqComercios));
+    setComerciosFilter(_.uniq(uniqComercios));
 
     setData(resultadoWithFleetName);
     setDataBackup(resultadoWithFleetName);
@@ -182,7 +184,9 @@ const Propina = () => {
   };
 
   useEffect(() => {
-    fetchJobs();
+    if (!isLoading) {
+      fetchJobs();
+    }
   }, [dateFilter, searchFilter, comerciosFilter]);
 
   const handleSearchChange = (e) => {
