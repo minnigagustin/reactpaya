@@ -5,31 +5,33 @@ import Gps from "./gps";
 import Automatizacion from "./automatizacion";
 import Panel from "./panel";
 import Notif from "./notif";
+import Import from "./import";
 import Propina from "./propina";
-
-
 
 class App extends Component {
   render() {
     return (
       <BrowserRouter>
         <Route path="/payatookan" exact>
-        <Home />
+          <Home />
         </Route>
-        <Route path="/payatookan/envios/" >
-        <Gps />
+        <Route path="/payatookan/envios/">
+          <Gps />
         </Route>
-        <Route path="/payatookan/propina/" >
-        <Propina />
+        <Route path="/payatookan/propina/">
+          <Propina />
         </Route>
-        <Route path="/payatookan/auto/" >
-        <Automatizacion />
+        <Route path="/payatookan/auto/">
+          <Automatizacion />
         </Route>
-        <Route path="/payatookan/panel/" >
-        <Panel />
+        <Route path="/payatookan/panel/">
+          <Panel />
         </Route>
-        <Route path="/payatookan/noti/" >
-        <Notif />
+        <Route path="/payatookan/noti/">
+          <Notif />
+        </Route>
+        <Route path="/payatookan/import/">
+          <Import />
         </Route>
       </BrowserRouter>
     );
