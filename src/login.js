@@ -38,8 +38,12 @@ const Login = ({ children, title }) => {
   return (
     <div className="wrapper fadeInDown">
       <div id="formContent">
-        <div className="fadeIn first pv-10">
-          <img src={process.env.PUBLIC_URL + "/logo.png"} alt="logo" />
+        <div className="fadeIn first">
+          <img
+            src={process.env.PUBLIC_URL + "/logo.png"}
+            alt="logo"
+            style={{ width: "200px" }}
+          />
         </div>
 
         <form onSubmit={handleLogin}>
