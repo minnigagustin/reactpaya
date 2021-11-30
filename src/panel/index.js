@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Container, Row, Col } from "reactstrap";
+import { Row, Col, Button } from "reactstrap";
 import firebase from "../firebase";
 import moment from "moment";
-import DataTable, { createTheme } from "react-data-table-component";
+import DataTable from "react-data-table-component";
 import DatePicker from "react-datepicker";
 import ReactExport from "react-data-export";
 import ModalEliminar from "./ModalEliminar";
 import ModalInsertar from "./ModalInsertar";
+import Layout from "../layout";
 
 import "../App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -18,29 +19,6 @@ const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
 const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 const url = "https://us-central1-yappareports.cloudfunctions.net/tookanQuery";
 const dato = { date: "2021-04-17" };
-
-createTheme("solarized", {
-  text: {
-    primary: "#268bd2",
-
-    secondary: "#2aa198",
-  },
-  background: {
-    default: "#002b36",
-  },
-  context: {
-    background: "#cb4b16",
-    text: "#FFFFFF",
-  },
-  divider: {
-    default: "#073642",
-  },
-  action: {
-    button: "rgba(0,0,0,.54)",
-    hover: "rgba(0,0,0,.08)",
-    disabled: "rgba(0,0,0,.12)",
-  },
-});
 
 const Panel = () => {
   const [data, setData] = useState([]);
@@ -102,9 +80,10 @@ const Panel = () => {
 
   const fetchOrders = async () => {
     setProgress(true);
-    let query = firebase.firestore().collection("orders_flattened");
+    let query = firebase.firestore().collection("orders");
     query
       .orderBy("accepted_at")
+      .where("migrated", "==", true)
       .startAt(moment(desde).format("YYYY-MM-DD"))
       .endAt(moment(hasta).format("YYYY-MM-DD"))
       .get()
@@ -115,6 +94,9 @@ const Panel = () => {
           items = items.filter((item) => {
             return (
               item.restaurant_name
+                .toUpperCase()
+                .indexOf(filterSearch.toUpperCase()) > -1 ||
+              (item.client_first_name + " " + item.client_last_name)
                 .toUpperCase()
                 .indexOf(filterSearch.toUpperCase()) > -1
             );
@@ -131,152 +113,153 @@ const Panel = () => {
   }, [desde, hasta]);
 
   return (
-    <div className="App">
-      <br />
-      <h1>INFORME</h1>
-      <br />
-      <Container>
-        <ExcelFile filename="reporte" element={<a href="#">Exportar Excel</a>}>
-          <ExcelSheet data={data} name="Reporte">
-            <ExcelColumn label="Order ID" value="id" />
-            <ExcelColumn label="Tipo" value="type" />
-            <ExcelColumn
-              label="Fecha"
-              value={(col) => moment(col.accepted_at).format("DD-MM-YYYY")}
-            />
-            <ExcelColumn
-              label="Nombre"
-              value={(col) =>
-                col.client_first_name + " " + col.client_last_name
-              }
-            />
-            <ExcelColumn label="Mail" value="client_email" />
-            <ExcelColumn
-              label="Venta Total sin descuento"
-              value="total_price"
-            />
-            <ExcelColumn
-              label="Venta total con descuento"
-              value={(col) => (col.total_price * 0.965 - 0.35).toFixed(2)}
-            />
-            <ExcelColumn
-              label="Descuento"
-              value={(col) => ((col.total_price * 3.5) / 100 + 0.35).toFixed(2)}
-            />
-            <ExcelColumn label="Metodo" value="payment" />
-            <ExcelColumn label="Restaurante" value="restaurant_name" />
-          </ExcelSheet>
-        </ExcelFile>
-        <br />
-        <br />
-        <input
-          className="form-control"
-          placeholder="Buscar..."
-          onChange={onChangeSearch}
-          onBlur={onChangeSearch}
-        />
-        <br />
-        <Row>
-          <Col>
-            <label htmlFor="nombre">Desde</label>
-            <DatePicker
-              selected={desde.toDate()}
-              onChange={(date) => setDesde(moment(date))}
-              dateFormat="dd-MM-yyyy"
-            />
-          </Col>
-          <Col>
-            <label htmlFor="nombre">Hasta</label>
-            <DatePicker
-              selected={hasta.toDate()}
-              onChange={(date) => setHasta(moment(date))}
-              dateFormat="dd-MM-yyyy"
-            />
-          </Col>
-        </Row>
-        <div>
+    <Layout title="Panel">
+      <Row className="d-flex py-4 align-items-end">
+        <Col>
+          <label>Búsqueda</label>
           <br />
-        </div>
-        <button
-          className="btn btn-success"
-          style={{ width: "98%" }}
-          onClick={() => fetchOrders()}
-        >
-          Filtrar {">>"}
-        </button>
-        <div>
-          <br />
-        </div>
-        <DataTable
-          columns={[
-            {
-              name: "Order ID",
-              sortable: true,
-              selector: "id",
-            },
-            {
-              name: "Tipo",
-              sortable: true,
-              selector: "type",
-            },
-            {
-              name: "Fecha",
-              sortable: true,
-              cell: (row) => (
-                <div>{moment(row.accepted_at).format("DD-MM-YYYY")}</div>
-              ),
-            },
-            {
-              name: "Nombre",
-              sortable: true,
-              cell: (row) => (
-                <div>
-                  {row.client_first_name} {row.client_last_name}
-                </div>
-              ),
-            },
-            {
-              name: "Venta Total sin descuento",
-              sortable: true,
-              cell: (row) => <div>${row.total_price}</div>,
-            },
-            {
-              name: "Venta total c. descuento",
-              sortable: true,
-              cell: (row) => (
-                <div>${(row.total_price * 0.965 - 0.35).toFixed(2)}</div>
-              ),
-            },
-            {
-              name: "Descuento",
-              sortable: true,
-              cell: (row) => (
-                <div>${((row.total_price * 3.5) / 100 + 0.35).toFixed(2)}</div>
-              ),
-            },
-            {
-              name: "Metodo",
-              sortable: true,
-              selector: "payment",
-            },
-            {
-              name: "Mail",
-              sortable: true,
-              selector: "client_email",
-            },
-            {
-              name: "Comercio",
-              sortable: true,
-              right: true,
-              selector: "restaurant_name",
-            },
-          ]}
-          data={data}
-          pagination={true}
-          responsive={true}
-          progressPending={progress}
-        />
-      </Container>
+          <input
+            className="form-control"
+            placeholder=""
+            onChange={onChangeSearch}
+            onBlur={onChangeSearch}
+          />
+        </Col>
+        <Col>
+          <label htmlFor="nombre">Desde</label>
+          <DatePicker
+            customInput={<input className="form-control" />}
+            selected={desde.toDate()}
+            onChange={(date) => setDesde(moment(date))}
+            dateFormat="dd-MM-yyyy"
+          />
+        </Col>
+        <Col>
+          <label htmlFor="nombre">Hasta</label>
+          <DatePicker
+            customInput={<input className="form-control" />}
+            selected={hasta.toDate()}
+            onChange={(date) => setHasta(moment(date))}
+            dateFormat="dd-MM-yyyy"
+          />
+        </Col>
+        <Col>
+          <Button className="btn btn-primary" onClick={() => fetchOrders()}>
+            Filtrar <i class="bi bi-filter"></i>
+          </Button>
+        </Col>
+        <Col>
+          <ExcelFile
+            filename="reporte"
+            element={
+              <Button className="btn btn-primary" href="#">
+                Exportar Excel <i class="bi bi-download"></i>
+              </Button>
+            }
+          >
+            <ExcelSheet data={data} name="Reporte">
+              <ExcelColumn label="Order ID" value="id" />
+              <ExcelColumn label="Tipo" value="type" />
+              <ExcelColumn
+                label="Fecha"
+                value={(col) => moment(col.accepted_at).format("DD-MM-YYYY")}
+              />
+              <ExcelColumn
+                label="Nombre"
+                value={(col) =>
+                  col.client_first_name + " " + col.client_last_name
+                }
+              />
+              <ExcelColumn label="Mail" value="client_email" />
+              <ExcelColumn
+                label="Venta Total sin descuento"
+                value="total_price"
+              />
+              <ExcelColumn
+                label="Venta total con descuento"
+                value={(col) => (col.total_price * 0.965 - 0.35).toFixed(2)}
+              />
+              <ExcelColumn
+                label="Descuento"
+                value={(col) =>
+                  ((col.total_price * 3.5) / 100 + 0.35).toFixed(2)
+                }
+              />
+              <ExcelColumn label="Metodo" value="payment" />
+              <ExcelColumn label="Restaurante" value="restaurant_name" />
+            </ExcelSheet>
+          </ExcelFile>
+        </Col>
+      </Row>
+      <DataTable
+        columns={[
+          {
+            name: "Order ID",
+            sortable: true,
+            selector: "id",
+          },
+          {
+            name: "Tipo",
+            sortable: true,
+            selector: "type",
+          },
+          {
+            name: "Fecha",
+            sortable: true,
+            cell: (row) => (
+              <div>{moment(row.accepted_at).format("DD-MM-YYYY")}</div>
+            ),
+          },
+          {
+            name: "Nombre",
+            sortable: true,
+            cell: (row) => (
+              <div>
+                {row.client_first_name} {row.client_last_name}
+              </div>
+            ),
+          },
+          {
+            name: "Venta Total sin descuento",
+            sortable: true,
+            cell: (row) => <div>${row.total_price}</div>,
+          },
+          {
+            name: "Venta total c. descuento",
+            sortable: true,
+            cell: (row) => (
+              <div>${(row.total_price * 0.965 - 0.35).toFixed(2)}</div>
+            ),
+          },
+          {
+            name: "Descuento",
+            sortable: true,
+            cell: (row) => (
+              <div>${((row.total_price * 3.5) / 100 + 0.35).toFixed(2)}</div>
+            ),
+          },
+          {
+            name: "Metodo",
+            sortable: true,
+            selector: "payment",
+          },
+          {
+            name: "Mail",
+            sortable: true,
+            selector: "client_email",
+          },
+          {
+            name: "Comercio",
+            sortable: true,
+            right: true,
+            selector: "restaurant_name",
+          },
+        ]}
+        data={data}
+        pagination={true}
+        responsive={true}
+        progressPending={progress}
+      />
 
       <ModalInsertar
         isOpen={!!modalInsertar}
@@ -293,7 +276,7 @@ const Panel = () => {
         form={form}
         setModalEliminar={setModalEliminar}
       />
-    </div>
+    </Layout>
   );
 };
 

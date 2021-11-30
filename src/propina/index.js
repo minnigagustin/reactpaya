@@ -5,6 +5,8 @@ import DataTable from "react-data-table-component";
 import ReactExport from "react-data-export";
 import DatePicker from "react-datepicker";
 import { default as ReactSelect, components } from "react-select";
+import Layout from "../layout";
+import { Row, Col, Button } from "reactstrap";
 
 import ModalEliminar from "./ModalEliminar";
 import ModalInsertar from "./ModalInsertar";
@@ -45,7 +47,6 @@ const Propina = () => {
   const [searchFilter, setSearchFilter] = React.useState("");
   const [comerciosFilter, setComerciosFilter] = React.useState([]);
   const [optionsComercios, setOptionsComercios] = React.useState([]);
-  const [searchTimeout, setSearchTimeout] = React.useState();
   const [form, setForm] = React.useState({
     id: "",
     nombre: "",
@@ -67,8 +68,8 @@ const Propina = () => {
     const job_and_fleet_details = await api.get_job_and_fleet_details({
       team_id: "449045",
       date: dateFilter
-        ? moment(dateFilter).subtract(8, "days").format("YYYY-MM-DD")
-        : moment().subtract(8, "days").format("YYYY-MM-DD"),
+        ? moment(dateFilter).format("YYYY-MM-DD")
+        : moment().format("YYYY-MM-DD"),
       ignore_fleets: "0",
       search_string: !!searchFilter ? searchFilter : "",
     });
@@ -187,121 +188,107 @@ const Propina = () => {
     if (!isLoading) {
       fetchJobs();
     }
-  }, [dateFilter, searchFilter, comerciosFilter]);
+  }, []);
 
   const handleSearchChange = (e) => {
-    if (searchTimeout) clearTimeout(searchTimeout);
-    setSearchTimeout(
-      setTimeout(() => {
-        setSearchFilter(e.target.value);
-      }, 500)
-    );
+    setSearchFilter(e.target.value);
   };
 
-  const comercios = [
-    { value: "ocean1", label: "Ocean" },
-    { value: "blue", label: "Blue" },
-    { value: "purple", label: "Purple" },
-    { value: "red", label: "Red" },
-    { value: "orange", label: "Orange" },
-    { value: "yellow", label: "Yellow" },
-    { value: "green", label: "Green" },
-    { value: "forest", label: "Forest" },
-    { value: "slate", label: "Slate" },
-    { value: "silver", label: "Silver" },
-  ];
-
   return (
-    <div className="App">
-      <br />
-      <h1>PROPINAS</h1>
-      <br />
-      <div class="container">
-        <div class="row">
-          <div class="col-sm">
-            Fecha:
-            <br />
-            <DatePicker
-              selected={dateFilter}
-              onChange={(date) => setDateFilter(date)}
-            />
-          </div>
-          <div class="col-sm">
-            Buscar:
-            <br />
-            <input placeholder="Buscar..." onChange={handleSearchChange} />
-          </div>
-          <div class="col-sm">
-            Comercios:
-            <br />
-            <ReactSelect
-              options={optionsComercios}
-              isMulti
-              closeMenuOnSelect={false}
-              hideSelectedOptions={false}
-              components={{ Option }}
-              onChange={(selected) => {
-                setComerciosFilter(selected);
-              }}
-              allowSelectAll={true}
-              value={comerciosFilter}
-            />
-          </div>
-        </div>
-      </div>
-      <ExcelFile
-        filename="reporte"
-        element={
-          <button
-            className="btn btn-success"
-            style={{ width: "98%", margin: "6px" }}
+    <Layout title="Propinas">
+      <Row className="d-flex py-4 align-items-end">
+        <Col>
+          Fecha:
+          <br />
+          <DatePicker
+            customInput={<input className="form-control" />}
+            selected={dateFilter}
+            onChange={(date) => setDateFilter(date)}
+          />
+        </Col>
+        <Col>
+          Buscar:
+          <br />
+          <input
+            className="form-control"
+            placeholder="Buscar..."
+            onChange={handleSearchChange}
+          />
+        </Col>
+        <Col>
+          Comercios:
+          <br />
+          <ReactSelect
+            options={optionsComercios}
+            isMulti
+            closeMenuOnSelect={false}
+            hideSelectedOptions={false}
+            components={{ Option }}
+            onChange={(selected) => {
+              setComerciosFilter(selected);
+            }}
+            allowSelectAll={true}
+            value={comerciosFilter}
+          />
+        </Col>
+        <Col>
+          <Button className="btn btn-primary" onClick={() => fetchJobs()}>
+            Filtrar <i class="bi bi-filter"></i>
+          </Button>
+        </Col>
+        <Col>
+          <ExcelFile
+            filename="reporte"
+            element={
+              <Button className="btn btn-primary" href="#">
+                Exportar Excel <i class="bi bi-download"></i>
+              </Button>
+            }
           >
-            Exportar Excel {">>"}
-          </button>
-        }
-      >
-        <ExcelSheet data={data} name="Reporte">
-          <ExcelColumn label="Job ID" value="job_id" />
-          <ExcelColumn
-            label="Nombre"
-            value={(col) =>
-              col.custom_field[0].data
-                ? col.custom_field[0].data
-                : col.custom_field[1].data
-            }
-          />
+            <ExcelSheet data={data} name="Reporte">
+              <ExcelColumn label="Job ID" value="job_id" />
+              <ExcelColumn
+                label="Nombre"
+                value={(col) =>
+                  col.custom_field[0].data
+                    ? col.custom_field[0].data
+                    : col.custom_field[1].data
+                }
+              />
 
-          <ExcelColumn
-            label="Venta Total sin descuento"
-            value={(col) =>
-              col.custom_field[11].label !== "Items"
-                ? "$" + col.custom_field[11].data
-                : "SIN PROPINA"
-            }
-          />
-          <ExcelColumn
-            label="Venta total con descuento"
-            value={(col) =>
-              col.custom_field[11].label !== "Items"
-                ? "$" + ((col.custom_field[11].data * 3.5) / 100).toFixed(2)
-                : "SIN PROPINA"
-            }
-          />
-          <ExcelColumn
-            label="Recibe"
-            value={(col) =>
-              col.custom_field[11].label !== "Items"
-                ? "$" +
-                  (
-                    col.custom_field[11].data -
-                    (col.custom_field[11].data * 3.5) / 100
-                  ).toFixed(2)
-                : "SIN PROPINA"
-            }
-          />
-          <ExcelColumn label="Motorizado" value="fleet_name" />
-        </ExcelSheet>
-      </ExcelFile>
+              <ExcelColumn
+                label="Venta Total sin descuento"
+                value={(col) =>
+                  col.custom_field[11].label !== "Items"
+                    ? "$" + col.custom_field[11].data
+                    : "SIN PROPINA"
+                }
+              />
+              <ExcelColumn
+                label="Venta total con descuento"
+                value={(col) =>
+                  col.custom_field[11].label !== "Items"
+                    ? "$" + ((col.custom_field[11].data * 3.5) / 100).toFixed(2)
+                    : "SIN PROPINA"
+                }
+              />
+              <ExcelColumn
+                label="Recibe"
+                value={(col) =>
+                  col.custom_field[11].label !== "Items"
+                    ? "$" +
+                      (
+                        col.custom_field[11].data -
+                        (col.custom_field[11].data * 3.5) / 100
+                      ).toFixed(2)
+                    : "SIN PROPINA"
+                }
+              />
+              <ExcelColumn label="Motorizado" value="fleet_name" />
+            </ExcelSheet>
+          </ExcelFile>
+        </Col>
+      </Row>
 
       <DataTable
         columns={[
@@ -391,7 +378,7 @@ const Propina = () => {
         setIsLoading={setIsLoading}
         total={total}
       />
-    </div>
+    </Layout>
   );
 };
 
