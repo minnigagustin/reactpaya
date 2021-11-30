@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/paya-reports/static/css/main.119fbf6c.chunk.css",
+    "main.js": "/paya-reports/static/js/main.ec99133c.chunk.js",
+    "main.js.map": "/paya-reports/static/js/main.ec99133c.chunk.js.map",
+    "runtime-main.js": "/paya-reports/static/js/runtime-main.1558142f.js",
+    "runtime-main.js.map": "/paya-reports/static/js/runtime-main.1558142f.js.map",
+    "static/css/2.90f9a31f.chunk.css": "/paya-reports/static/css/2.90f9a31f.chunk.css",
+    "static/js/2.31a6c134.chunk.js": "/paya-reports/static/js/2.31a6c134.chunk.js",
+    "static/js/2.31a6c134.chunk.js.map": "/paya-reports/static/js/2.31a6c134.chunk.js.map",
+    "static/js/3.c232320d.chunk.js": "/paya-reports/static/js/3.c232320d.chunk.js",
+    "static/js/3.c232320d.chunk.js.map": "/paya-reports/static/js/3.c232320d.chunk.js.map",
+    "index.html": "/paya-reports/index.html",
+    "static/css/2.90f9a31f.chunk.css.map": "/paya-reports/static/css/2.90f9a31f.chunk.css.map",
+    "static/css/main.119fbf6c.chunk.css.map": "/paya-reports/static/css/main.119fbf6c.chunk.css.map",
+    "static/js/2.31a6c134.chunk.js.LICENSE.txt": "/paya-reports/static/js/2.31a6c134.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.1558142f.js",
+    "static/css/2.90f9a31f.chunk.css",
+    "static/js/2.31a6c134.chunk.js",
+    "static/css/main.119fbf6c.chunk.css",
+    "static/js/main.ec99133c.chunk.js"
+  ]
+}
