@@ -1,20 +1,38 @@
 import React from "react";
+import firebase from "./firebase";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Login = ({ children, title }) => {
+  const [loading, setLoading] = React.useState(false);
   const [user, setUser] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [error, setError] = React.useState("");
+  const [error, setError] = React.useState(null);
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (user === "payaadmin" && password === "payaadmin") {
-      localStorage.setItem("authenticated", true);
-      window.location.href = "/payatookan";
-    } else {
-      setError("Usuario o contraseña incorrectos");
-    }
+    let query = firebase.firestore().collection("admins");
+    setLoading(true);
+    setError(null);
+
+    query
+      .where("user", "==", user)
+      .where("password", "==", password)
+      .get()
+      .then((querySnapshot) => {
+        setLoading(false);
+        if (!querySnapshot.empty) {
+          localStorage.setItem("authenticated", true);
+          window.location.href = "/payatookan";
+        } else {
+          setError("Usuario o contraseña incorrectos");
+        }
+      })
+      .catch((error) => {
+        console.log({ error });
+        setLoading(false);
+        setError("Usuario o contraseña incorrectos");
+      });
   };
 
   return (
@@ -43,7 +61,16 @@ const Login = ({ children, title }) => {
           />
 
           <div>{error && <p className="text-danger">{error}</p>}</div>
-          <input type="submit" className="fadeIn fourth" value="Ingresar" />
+          {loading && (
+            <div class="spinner-border m-4" role="status">
+              <span class="sr-only">Ingresando...</span>
+            </div>
+          )}
+
+          <div className="m-4">
+            <input type="submit" className="fadeIn fourth" value="Ingresar" />
+            <br />
+          </div>
         </form>
       </div>
     </div>
