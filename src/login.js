@@ -66,8 +66,8 @@ const Login = ({ children, title }) => {
 
           <div>{error && <p className="text-danger">{error}</p>}</div>
           {loading && (
-            <div class="spinner-border m-4" role="status">
-              <span class="sr-only">Ingresando...</span>
+            <div className="spinner-border m-4" role="status">
+              <span className="sr-only">Ingresando...</span>
             </div>
           )}
 

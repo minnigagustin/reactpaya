@@ -233,7 +233,7 @@ const Propina = () => {
         </Col>
         <Col>
           <Button className="btn btn-primary" onClick={() => fetchJobs()}>
-            Filtrar <i class="bi bi-filter"></i>
+            Filtrar <i className="bi bi-filter"></i>
           </Button>
         </Col>
         <Col>
@@ -241,7 +241,7 @@ const Propina = () => {
             filename="reporte"
             element={
               <Button className="btn btn-primary" href="#">
-                Exportar Excel <i class="bi bi-download"></i>
+                Exportar Excel <i className="bi bi-download"></i>
               </Button>
             }
           >

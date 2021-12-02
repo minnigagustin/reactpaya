@@ -80,12 +80,13 @@ const Panel = () => {
 
   const fetchOrders = async () => {
     setProgress(true);
-    let query = firebase.firestore().collection("orders");
-    query
-      .orderBy("accepted_at")
+    firebase
+      .firestore()
+      .collection("orders")
       .where("migrated", "==", true)
+      .orderBy("accepted_at", "asc")
       .startAt(moment(desde).format("YYYY-MM-DD"))
-      .endAt(moment(hasta).format("YYYY-MM-DD"))
+      .endAt(moment(hasta).add(1, "days").format("YYYY-MM-DD"))
       .get()
       .then((item) => {
         let items = item.docs.map((doc) => doc.data());
@@ -102,7 +103,6 @@ const Panel = () => {
             );
           });
         }
-
         setData(items);
         setProgress(false);
       });
@@ -145,7 +145,7 @@ const Panel = () => {
         </Col>
         <Col>
           <Button className="btn btn-primary" onClick={() => fetchOrders()}>
-            Filtrar <i class="bi bi-filter"></i>
+            Filtrar <i className="bi bi-filter"></i>
           </Button>
         </Col>
         <Col>
@@ -153,7 +153,7 @@ const Panel = () => {
             filename="reporte"
             element={
               <Button className="btn btn-primary" href="#">
-                Exportar Excel <i class="bi bi-download"></i>
+                Exportar Excel <i className="bi bi-download"></i>
               </Button>
             }
           >
