@@ -83,7 +83,6 @@ const Panel = () => {
     firebase
       .firestore()
       .collection("orders")
-      .where("migrated", "==", true)
       .orderBy("accepted_at", "asc")
       .startAt(moment(desde).format("YYYY-MM-DD"))
       .endAt(moment(hasta).add(1, "days").format("YYYY-MM-DD"))

@@ -27,21 +27,24 @@ const Import = () => {
   };
 
   const batchChange = async () => {
-    const documentSnapshotArray = await dbOrders.limit(10).get();
+    const documentSnapshotArray = await dbOrders.where("count", "==", 1).get();
     const batch = firestore.batch();
+
+    console.info({ docs: documentSnapshotArray.docs });
 
     documentSnapshotArray.forEach((documentSnapshot) => {
       let documentData = documentSnapshot.data();
-      console.info({ documentData });
 
       if (documentData?.orders?.length === 1) {
         documentData = { ...documentData.orders[0], migrated: true };
       }
+      console.info({ documentData });
 
       batch.update(documentSnapshot.ref, documentData);
     });
 
-    await batch.commit();
+    const commmit = await batch.commit();
+    console.info({ commmit });
 
     return;
   };
