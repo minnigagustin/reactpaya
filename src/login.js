@@ -23,7 +23,7 @@ const Login = ({ children, title }) => {
         setLoading(false);
         if (!querySnapshot.empty) {
           localStorage.setItem("authenticated", true);
-          window.location.href = "/payatookan";
+          window.location.href = "/payatookan/general";
         } else {
           setError("Usuario o contraseña incorrectos");
         }

@@ -6,12 +6,12 @@ import "bootstrap/dist/css/bootstrap.min.css";
 const Layout = ({ children, title }) => {
   const location = useLocation();
   if (localStorage.getItem("authenticated") !== "true") {
-    window.location.href = "/";
+    window.location.href = "/payatookan/login";
   }
 
   const handleLogout = () => {
     localStorage.removeItem("authenticated");
-    window.location.href = "/";
+    window.location.href = "/payatookan/login";
   };
 
   return (

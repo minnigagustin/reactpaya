@@ -10,12 +10,12 @@ const Import = () => {
   const [importedOrders, setImportedOrders] = React.useState([]);
   const importOrders = () => {
     dbOrders
-      .where("migrated", "==", false)
+      .where("count", "==", 1)
       .limit(100)
       .get()
-      .then((orderCollection) => {
+      .then(async (orderCollection) => {
         const docs = orderCollection.docs;
-        docs.map(async (doc) => {
+        await docs.map(async (doc) => {
           const id = doc.id;
           const data = doc.data();
           console.info(`MIGRATED ${id}: `, data.orders.length === 1);

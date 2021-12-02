@@ -13,10 +13,10 @@ class App extends Component {
   render() {
     return (
       <BrowserRouter>
-        <Route path="/login" exact>
+        <Route path="/payatookan/login" exact>
           <Login />
         </Route>
-        <Route path="/payatookan" exact>
+        <Route path="/payatookan/general" exact>
           <Tookan />
         </Route>
         <Route path="/payatookan/envios/">
@@ -37,8 +37,8 @@ class App extends Component {
         <Route path="/payatookan/import/">
           <Import />
         </Route>
-        <Route exact path="/">
-          <Redirect to="/login" />
+        <Route exact path="/payatookan/">
+          <Redirect to="/payatookan/login" />
         </Route>
       </BrowserRouter>
     );
