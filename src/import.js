@@ -8,21 +8,16 @@ const dbOrders = firestore.collection("orders");
 
 const Import = () => {
   const [importedOrders, setImportedOrders] = React.useState([]);
+
   const importOrders = () => {
     dbOrders
       .where("count", "==", 1)
-      .limit(100)
       .get()
       .then(async (orderCollection) => {
-        const docs = orderCollection.docs;
-        await docs.map(async (doc) => {
-          const id = doc.id;
-          const data = doc.data();
-          console.info(`MIGRATED ${id}: `, data.orders.length === 1);
-          if (data.orders.length === 1) {
-            await dbOrders.doc(id).set({ ...data.orders[0], migrated: true });
-          }
+        orderCollection.docs.forEach(async (order) => {
+          console.info({ data: order.data() });
         });
+        console.info({ cantidad_total: orderCollection.docs.length });
       });
   };
 
@@ -30,7 +25,7 @@ const Import = () => {
     const documentSnapshotArray = await dbOrders.where("count", "==", 1).get();
     const batch = firestore.batch();
 
-    console.info({ docs: documentSnapshotArray.docs });
+    // console.info({ docs: documentSnapshotArray.docs });
 
     documentSnapshotArray.forEach((documentSnapshot) => {
       let documentData = documentSnapshot.data();
@@ -38,13 +33,13 @@ const Import = () => {
       if (documentData?.orders?.length === 1) {
         documentData = { ...documentData.orders[0], migrated: true };
       }
-      console.info({ documentData });
+      // console.info({ documentData });
 
       batch.update(documentSnapshot.ref, documentData);
     });
 
     const commmit = await batch.commit();
-    console.info({ commmit });
+    // console.info({ commmit });
 
     return;
   };
@@ -59,9 +54,6 @@ const Import = () => {
       <br />
       COUNT: {importedOrders.count}
       <br />
-      {importedOrders.map((id) => (
-        <div key={id}>{id}</div>
-      ))}
     </div>
   );
 };

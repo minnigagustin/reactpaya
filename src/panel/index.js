@@ -27,8 +27,10 @@ const Panel = () => {
   const [modalEliminar, setModalEliminar] = useState(false);
   const [modalInsertar, setModalInsertar] = useState(false);
   const [filterSearch, setFilterSearch] = useState("");
-  const [desde, setDesde] = useState(moment().subtract(7, "days"));
+  const [desde, setDesde] = useState(moment().subtract(6, "days"));
   const [hasta, setHasta] = useState(moment());
+  const [resetPaginationToggle, setResetPaginationToggle] =
+    React.useState(false);
 
   const form = {
     id: "",
@@ -84,8 +86,16 @@ const Panel = () => {
       .firestore()
       .collection("orders")
       .orderBy("accepted_at", "asc")
-      .startAt(moment(desde).format("YYYY-MM-DD"))
-      .endAt(moment(hasta).add(1, "days").format("YYYY-MM-DD"))
+      .where(
+        "accepted_at",
+        ">",
+        desde.clone().add(1, "days").format("YYYY-MM-DD")
+      )
+      .where(
+        "accepted_at",
+        "<",
+        hasta.clone().add(1, "days").format("YYYY-MM-DD")
+      )
       .get()
       .then((item) => {
         let items = item.docs.map((doc) => doc.data());
@@ -104,6 +114,7 @@ const Panel = () => {
         }
         setData(items);
         setProgress(false);
+        setResetPaginationToggle(!resetPaginationToggle);
       });
   };
 
@@ -191,6 +202,7 @@ const Panel = () => {
         </Col>
       </Row>
       <DataTable
+        paginationResetDefaultPage={resetPaginationToggle}
         columns={[
           {
             name: "Order ID",
