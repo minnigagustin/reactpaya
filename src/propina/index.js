@@ -150,7 +150,10 @@ const Propina = () => {
   const selectNotification = async (order) => {
     const datowallet = {
       fleet_id: order.fleet_id,
-      amount: 0,
+      amount: (
+        order.custom_field[11].data -
+        (order.custom_field[11].data * 3.5) / 100
+      ).toFixed(2),
       transaction_type: 2,
       reference_id: String(order.job_id),
       wallet_type: 2,
