@@ -13,6 +13,7 @@ import {
   Row,
   Col,
 } from "reactstrap";
+import Layout from "./layout";
 
 const url = "https://api.tookanapp.com/v2/get_all_fleets";
 const dato = {
@@ -246,10 +247,7 @@ class Home extends Component {
     const { form } = this.state;
 
     return (
-      <div className="App">
-        <br />
-        <h1>GENERAL</h1>
-        <br />
+      <Layout title="General">
         <input placeholder="Buscar..." onChange={this.onChangeSearch} />
         <table className="table ">
           <thead>
@@ -477,7 +475,7 @@ class Home extends Component {
             </button>
           </ModalFooter>
         </Modal>
-      </div>
+      </Layout>
     );
   }
 }
