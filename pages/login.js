@@ -1,11 +1,13 @@
 import React from "react";
 import firebase from "../components/firebase";
+import { useRouter } from "next/router";
 
 const Login = ({ children, title }) => {
   const [loading, setLoading] = React.useState(false);
   const [user, setUser] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState(null);
+  const router = useRouter();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -19,10 +21,9 @@ const Login = ({ children, title }) => {
       .get()
       .then((querySnapshot) => {
         setLoading(false);
-        if (!querySnapshot.empty) {
-          typeof window !== "undefined" &&
-            localStorage.setItem("authenticated", true);
-          window.location.href = "/general";
+        if (!querySnapshot.empty && typeof window !== "undefined") {
+          localStorage.setItem("authenticated", true);
+          router.push("/general");
         } else {
           setError("Usuario o contraseña incorrectos");
         }
@@ -39,7 +40,7 @@ const Login = ({ children, title }) => {
       <div id="formContent">
         <div className="fadeIn first">
           <img
-            src={process.env.PUBLIC_URL + "/logo.png"}
+            src={"/logo.png"}
             alt="logo"
             style={{ width: "200px" }}
           />

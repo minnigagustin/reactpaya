@@ -8,13 +8,11 @@ const Layout = ({ children, title }) => {
     localStorage.getItem("authenticated") !== "true"
   ) {
     router.push("/login");
-    // window.location.href = "/login";
   }
 
   const handleLogout = () => {
     typeof window !== "undefined" && localStorage.removeItem("authenticated");
     router.push("/login");
-    // window.location.href = "/login";
   };
 
   return (
