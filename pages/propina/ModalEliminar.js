@@ -1,6 +1,6 @@
 import { Modal, ModalBody, ModalFooter } from "reactstrap";
 
-import api from "../api";
+import api from "../../components/api";
 
 const ModalEliminar = ({ noti, isOpen, setModalEliminar, setIsLoading, total }) => {
   const enviarNotificacion = async () => {

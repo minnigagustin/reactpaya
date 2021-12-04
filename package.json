@@ -1,5 +1,5 @@
 {
-  "name": "payatookan",
+  "name": "paya-reports",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -14,14 +14,13 @@
     "bootstrap": "^5.0.2",
     "firebase": "^8.7.1",
     "moment": "^2.29.1",
+    "next": "^12.0.6",
     "react": "^17.0.2",
     "react-data-export": "^0.6.0",
     "react-data-table-component": "^7.0.0-rc2",
     "react-datepicker": "^4.3.0",
     "react-dom": "^17.0.2",
     "react-export-excel": "^0.5.3",
-    "react-router-dom": "^5.2.0",
-    "react-scripts": "4.0.3",
     "react-select": "^5.2.1",
     "reactstrap": "^8.9.0",
     "semantic-ui-css": "^2.4.1",
@@ -29,12 +28,11 @@
     "styled-components": "^5.3.3",
     "web-vitals": "^1.1.2"
   },
-  "homepage": "http://appspuntaltenses.com/payatookan/",
+  "homepage": "http://appspuntaltenses.com/",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "eslintConfig": {
     "extends": [
@@ -53,5 +51,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "main": "index.js",
+  "repository": "https://github.com/minnigagustin/reactpaya.git",
+  "author": "Julio Truzzi <julio.truzzi@gmail.com>",
+  "license": "MIT"
 }

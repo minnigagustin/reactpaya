@@ -1,7 +1,5 @@
 import React, { Component } from "react";
-import "./App.css";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import _ from "lodash";
@@ -16,7 +14,7 @@ import {
   Col,
 } from "reactstrap";
 // import { DistanceMatrixService, LoadScript } from '@react-google-maps/api';
-import Layout from "./layout";
+import Layout from "../components/layout";
 
 const url = "https://api.tookanapp.com/v2/get_job_and_fleet_details";
 

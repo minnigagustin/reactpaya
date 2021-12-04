@@ -5,16 +5,13 @@ import DataTable from "react-data-table-component";
 import ReactExport from "react-data-export";
 import DatePicker from "react-datepicker";
 import { default as ReactSelect, components } from "react-select";
-import Layout from "../layout";
+import Layout from "../../components/layout";
 import { Row, Col, Button } from "reactstrap";
 
 import ModalEliminar from "./ModalEliminar";
 import ModalInsertar from "./ModalInsertar";
 
-import "../App.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "react-datepicker/dist/react-datepicker.css";
-import api from "../api";
+import api from "../../components/api";
 
 const ExcelFile = ReactExport.ExcelFile;
 const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;

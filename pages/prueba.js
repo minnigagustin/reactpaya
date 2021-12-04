@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
-import './App.css';
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Modal, ModalBody, ModalFooter, ModalHeader, Container, Row, Col } from 'reactstrap';

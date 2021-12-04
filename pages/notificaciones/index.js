@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import "./App.css";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,7 +14,7 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import Layout from "./layout";
+import Layout from "../../components/layout";
 // import { DistanceMatrixService, LoadScript } from '@react-google-maps/api';
 
 const url = "https://api.tookanapp.com/v2/send_notification";

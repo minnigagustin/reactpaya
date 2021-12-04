@@ -1,7 +1,5 @@
 import React from "react";
-import firebase from "./firebase";
-
-import "bootstrap/dist/css/bootstrap.min.css";
+import firebase from "../components/firebase";
 
 const Login = ({ children, title }) => {
   const [loading, setLoading] = React.useState(false);
@@ -22,8 +20,9 @@ const Login = ({ children, title }) => {
       .then((querySnapshot) => {
         setLoading(false);
         if (!querySnapshot.empty) {
-          localStorage.setItem("authenticated", true);
-          window.location.href = "/payatookan/general";
+          typeof window !== "undefined" &&
+            localStorage.setItem("authenticated", true);
+          window.location.href = "/general";
         } else {
           setError("Usuario o contraseña incorrectos");
         }

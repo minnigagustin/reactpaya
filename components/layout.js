@@ -1,17 +1,20 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
-import "./App.css";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { useRouter } from "next/router";
 
 const Layout = ({ children, title }) => {
-  const location = useLocation();
-  if (localStorage.getItem("authenticated") !== "true") {
-    window.location.href = "/payatookan/login";
+  const router = useRouter();
+  if (
+    typeof window !== "undefined" &&
+    localStorage.getItem("authenticated") !== "true"
+  ) {
+    router.push("/login");
+    // window.location.href = "/login";
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("authenticated");
-    window.location.href = "/payatookan/login";
+    typeof window !== "undefined" && localStorage.removeItem("authenticated");
+    router.push("/login");
+    // window.location.href = "/login";
   };
 
   return (
@@ -29,9 +32,9 @@ const Layout = ({ children, title }) => {
                 <li className="nav-item">
                   <a
                     className={`nav-link ${
-                      location.pathname === "/payatookan" ? "active" : ""
+                      router.asPath === "/general" ? "active" : ""
                     }`}
-                    href="/payatookan"
+                    href="/general"
                   >
                     <i className="bi bi-house"></i> General
                   </a>
@@ -39,9 +42,9 @@ const Layout = ({ children, title }) => {
                 <li className="nav-item">
                   <a
                     className={`nav-link ${
-                      location.pathname === "/payatookan/panel" ? "active" : ""
+                      router.asPath === "/panel" ? "active" : ""
                     }`}
-                    href="/payatookan/panel"
+                    href="/panel"
                   >
                     <span data-feather="Layout"></span>
                     <i className="bi bi-card-list"></i> Panel
@@ -50,11 +53,9 @@ const Layout = ({ children, title }) => {
                 <li className="nav-item">
                   <a
                     className={`nav-link ${
-                      location.pathname === "/payatookan/propina"
-                        ? "active"
-                        : ""
+                      router.asPath === "/propina" ? "active" : ""
                     }`}
-                    href="/payatookan/propina"
+                    href="/propina"
                   >
                     <i className="bi bi-cash-coin"></i> Propinas
                   </a>
@@ -62,9 +63,9 @@ const Layout = ({ children, title }) => {
                 <li className="nav-item">
                   <a
                     className={`nav-link ${
-                      location.pathname === "/payatookan/auto" ? "active" : ""
+                      router.asPath === "/automatizacion" ? "active" : ""
                     }`}
-                    href="/payatookan/auto"
+                    href="/automatizacion"
                   >
                     <span data-feather="file"></span>
                     <i className="bi bi-arrow-clockwise"></i> Automatización
@@ -73,9 +74,9 @@ const Layout = ({ children, title }) => {
                 <li className="nav-item">
                   <a
                     className={`nav-link ${
-                      location.pathname === "/payatookan/envios" ? "active" : ""
+                      router.asPath === "/envios" ? "active" : ""
                     }`}
-                    href="/payatookan/envios"
+                    href="/envios"
                   >
                     <span data-feather="file"></span>
                     <i className="bi bi-bicycle"></i> Envíos
@@ -84,9 +85,9 @@ const Layout = ({ children, title }) => {
                 <li className="nav-item">
                   <a
                     className={`nav-link ${
-                      location.pathname === "/payatookan/noti" ? "active" : ""
+                      router.asPath === "/notificaciones" ? "active" : ""
                     }`}
-                    href="/payatookan/noti"
+                    href="/notificaciones"
                   >
                     <span data-feather="file"></span>
                     <i className="bi bi-bell"></i> Notificaciones

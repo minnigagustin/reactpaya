@@ -1,9 +1,7 @@
 import React, { Component } from "react";
-import "./App.css";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit } from "@fortawesome/free-solid-svg-icons";
+import { faPen } from "@fortawesome/free-solid-svg-icons";
 import {
   Modal,
   ModalBody,
@@ -13,31 +11,35 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import Layout from "./layout";
+import Layout from "../components/layout";
+// import { DistanceMatrixService, LoadScript } from '@react-google-maps/api';
 
-const url = "https://api.tookanapp.com/v2/get_all_fleets";
-const dato = {
-  api_key: "56616583f2464d185d5a773c4345254315edc6f922df783f5c1a06",
-};
+const url = "https://api.tookanapp.com/v2/get_fare_estimate";
+
 const headers = {
   "Content-Type": "application/json",
 };
 
-class Home extends Component {
+class Gps extends Component {
   state = {
-    data: [],
-    dataBackup: [],
+    data: {
+      id: "",
+      envio: 0,
+      distancia: 0,
+      tiempo: 0,
+    },
+    id: 0,
+    job_latitude: 0,
+    job_longitude: 0,
+    job_pickup_latitude: 0,
+    job_pickup_longitude: 0,
+    job_pickup_address: "",
+    job_address: "",
     modalInsertar: false,
     modalEliminar: false,
-    total: 0,
-    textSearch: "",
     fecha: {
       inicial: "",
       final: "",
-    },
-    noti: {
-      id: 0,
-      nombre: "",
     },
     form: {
       id: "",
@@ -55,12 +57,30 @@ class Home extends Component {
   };
 
   peticionGet = () => {
+    const dato = {
+      template_name: "Order_Details",
+      delivery_latitude: this.state.job_latitude,
+      delivery_longitude: this.state.job_longitude,
+      api_key: "56616583f2464d185d5a773c4345254315edc6f922df783f5c1a06",
+      pickup_latitude: this.state.job_pickup_latitude,
+      pickup_longitude: this.state.job_pickup_longitude,
+      formula_type: 1,
+      map_keys: {
+        map_plan_type: 1,
+
+        google_api_key: "AIzaSyDVkVjap_CH32oy6A3V6T_ewq9jIq8q5eY",
+      },
+    };
     axios
       .post(url, dato, headers)
       .then((response) => {
+        // console.log(response.data);
         this.setState({
-          data: response.data.data,
-          dataBackup: response.data.data,
+          data: {
+            envio: response.data.data.estimated_fare,
+            distancia: response.data.data.distance / 1000,
+            tiempo: response.data.data.time / 60,
+          },
         });
       })
       .catch((error) => {
@@ -82,19 +102,30 @@ class Home extends Component {
   };
 
   peticionPut = () => {
-    const urldato =
-      "https://api.tookanapp.com/v2/fleet/wallet/create_transaction";
+    this.setState({
+      data: {
+        envio: "Cargando...",
+        distancia: "Cargando...",
+        tiempo: "Cargando...",
+      },
+    });
+
+    const urldato = "https://api.tookanapp.com/v2/get_job_details";
     const datowallet = {
       api_key: "56616583f2464d185d5a773c4345254315edc6f922df783f5c1a06",
-      fleet_id: this.state.form.id,
-      amount: this.state.form.total,
-      transaction_type: this.state.form.aurest,
-      reference_id: this.state.form.reference_id,
-      wallet_type: this.state.form.crediwallet,
-      description: this.state.form.razon,
+      job_ids: [this.state.id],
+      include_task_history: 0,
     };
     axios.post(urldato, datowallet, headers).then((response) => {
-      this.modalInsertar();
+      console.log(response.data.data[0]);
+      this.setState({
+        job_latitude: response.data.data[0].job_latitude,
+        job_longitude: response.data.data[0].job_longitude,
+        job_pickup_latitude: response.data.data[0].job_pickup_latitude,
+        job_pickup_longitude: response.data.data[0].job_pickup_longitude,
+        job_pickup_address: response.data.data[0].job_pickup_address,
+        job_address: response.data.data[0].job_address,
+      });
       this.peticionGet();
     });
   };
@@ -179,116 +210,52 @@ class Home extends Component {
   handleChange = async (e) => {
     e.persist();
     await this.setState({
-      form: {
-        ...this.state.form,
-        [e.target.name]: e.target.value,
-      },
+      id: e.target.value,
     });
   };
-
-  handleChangeNoti = async (e) => {
-    e.persist();
-    await this.setState({
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  seleccionarNoti = (empresa) => {
-    this.setState({
-      total: 0,
-      noti: {
-        id: empresa.fleet_id,
-        nombre: empresa.name,
-      },
-      modalEliminar: !this.state.modalEliminar,
-    });
-  };
-
-  EnviarNoti = () => {
-    const notiid = [];
-    notiid.push(this.state.noti.id);
-    const urlnueva = "https://api.tookanapp.com/v2/send_notification";
-    const dato = {
-      api_key: "56616583f2464d185d5a773c4345254315edc6f922df783f5c1a06",
-      fleet_ids: notiid,
-      message:
-        "Hola " +
-        this.state.noti.nombre +
-        ", hemos realizado una transferencia a tu cuenta por $" +
-        this.state.total,
-    };
-    axios.post(urlnueva, dato, headers).then((response) => {
-      console.log(response.data);
-      this.setState({
-        modalEliminar: !this.state.modalEliminar,
-      });
-    });
-  };
-
-  onChangeSearch = async (e) => {
-    e.persist();
-    const data = this.state.dataBackup;
-    const newData = data.filter(function (item) {
-      const itemData = item.name.toUpperCase();
-      const textData = e.target.value.toUpperCase();
-      return itemData.indexOf(textData) > -1;
-    });
-
-    this.setState({
-      data: newData,
-    });
-  };
-
-  componentDidMount() {
-    this.peticionGet();
-  }
 
   render() {
-    const { form } = this.state;
+    const { form, data } = this.state;
 
     return (
-      <Layout title="General">
-        <input placeholder="Buscar..." onChange={this.onChangeSearch} />
+      <Layout title="Envíos">
+        <input placeholder="Pedido N°..." onChange={this.handleChange} />
+        <button className="btn btn-primary" onClick={() => this.peticionPut()}>
+          <FontAwesomeIcon icon={faPen} />
+        </button>
+        <br />
+        {this.state.job_pickup_address} | {this.state.job_address}
         <table className="table ">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Acciones</th>
+              <th>Tiempo</th>
+              <th>Distancia</th>
+              <th>Total</th>
             </tr>
           </thead>
           <tbody>
-            {this.state.data.map((empresa) => {
-              return (
-                <tr>
-                  <td>{empresa.fleet_id}</td>
-                  <td>{empresa.name}</td>
-                  <td>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => {
-                        this.seleccionarEmpresa(empresa);
-                        this.modalInsertar();
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faEdit} />
-                    </button>
-                    |
-                    <button
-                      className="btn btn-success"
-                      onClick={() => {
-                        this.seleccionarNoti(empresa);
-                      }}
-                    >
-                      N
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+            <td>
+              {data.tiempo !== "Cargando..."
+                ? data.tiempo.toFixed(2) + "Min"
+                : data.tiempo}
+            </td>
+            <td>
+              {data.distancia !== "Cargando..."
+                ? data.distancia.toFixed(2) + "Km"
+                : data.distancia}
+            </td>
+            <td>
+              {data.envio !== "Cargando..." ? "$" + data.envio : data.envio}
+            </td>
           </tbody>
         </table>
-
+        <button
+          className="btn btn-success"
+          style={{ width: "98%" }}
+          onClick={() => this.peticionPost()}
+        >
+          Actualizar | Pronto
+        </button>
         <Modal isOpen={this.state.modalInsertar} centered={true}>
           <ModalHeader style={{ display: "block" }}>
             <span
@@ -311,7 +278,7 @@ class Home extends Component {
                 value={form ? form.id : this.state.data.length + 1}
               />
               <br />
-              <label htmlFor="nombre">Nombre</label>
+              <label htmlFor="nombre">Distancia</label>
               <input
                 className="form-control"
                 type="text"
@@ -442,36 +409,22 @@ class Home extends Component {
             </button>
           </ModalFooter>
         </Modal>
-
-        <Modal isOpen={this.state.modalEliminar} centered={true}>
+        <Modal isOpen={this.state.modalEliminar}>
           <ModalBody>
-            <div className="form-group">
-              <label htmlFor="nombre">
-                Monto depositado a {this.state.noti.nombre}
-              </label>
-              <input
-                className="form-control"
-                type="number"
-                inputmode="numeric"
-                name="total"
-                id="total"
-                onChange={this.handleChangeNoti}
-                value={this.state.total ? this.state.total : ""}
-              />
-            </div>
+            Estás seguro que deseas eliminar a la empresa {form && form.nombre}
           </ModalBody>
           <ModalFooter>
             <button
               className="btn btn-danger"
-              onClick={() => this.setState({ modalEliminar: false })}
+              onClick={() => this.peticionDelete()}
             >
-              Salir
+              Sí
             </button>
             <button
-              className="btn btn-success"
-              onClick={() => this.EnviarNoti()}
+              className="btn btn-secundary"
+              onClick={() => this.setState({ modalEliminar: false })}
             >
-              Notificacion
+              No
             </button>
           </ModalFooter>
         </Modal>
@@ -479,4 +432,4 @@ class Home extends Component {
     );
   }
 }
-export default Home;
+export default Gps;

@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Row, Col, Button } from "reactstrap";
-import firebase from "../firebase";
+import firebase from "../../components/firebase";
 import moment from "moment";
 import DataTable from "react-data-table-component";
 import DatePicker from "react-datepicker";
 import ReactExport from "react-data-export";
 import ModalEliminar from "./ModalEliminar";
 import ModalInsertar from "./ModalInsertar";
-import Layout from "../layout";
-
-import "../App.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "react-datepicker/dist/react-datepicker.css";
+import Layout from "../../components/layout";
 
 const ExcelFile = ReactExport.ExcelFile;
 const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;

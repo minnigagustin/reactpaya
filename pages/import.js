@@ -1,7 +1,5 @@
 import React from "react";
-import "./App.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import firebase from "./firebase";
+import firebase from "../components/firebase";
 
 const firestore = firebase.firestore();
 const dbOrders = firestore.collection("orders");

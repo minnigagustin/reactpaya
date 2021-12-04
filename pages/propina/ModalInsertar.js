@@ -8,7 +8,7 @@ import {
   Col,
 } from "reactstrap";
 
-import api from "../api";
+import api from "../../components/api";
 
 const ModalEliminar = ({
   data,
