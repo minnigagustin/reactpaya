@@ -51,9 +51,9 @@ const Layout = ({ children, title }) => {
                 <li className="nav-item">
                   <a
                     className={`nav-link ${
-                      router.asPath === "/propina" ? "active" : ""
+                      router.asPath === "/propinas" ? "active" : ""
                     }`}
-                    href="/propina"
+                    href="/propinas"
                   >
                     <i className="bi bi-cash-coin"></i> Propinas
                   </a>
