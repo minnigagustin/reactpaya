@@ -7,12 +7,12 @@ const Layout = ({ children, title }) => {
     typeof window !== "undefined" &&
     localStorage.getItem("authenticated") !== "true"
   ) {
-    router.push("/login");
+    router.push("/");
   }
 
   const handleLogout = () => {
     typeof window !== "undefined" && localStorage.removeItem("authenticated");
-    router.push("/login");
+    router.push("/");
   };
 
   return (

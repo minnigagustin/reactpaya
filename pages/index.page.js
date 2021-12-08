@@ -49,9 +49,9 @@ const Login = ({ children, title }) => {
         <form onSubmit={handleLogin}>
           <input
             type="text"
-            id="login"
+            id="user"
             className="fadeIn second"
-            name="login"
+            name="user"
             placeholder="Usuario"
             onChange={(e) => setUser(e.target.value)}
           />
@@ -59,7 +59,7 @@ const Login = ({ children, title }) => {
             type="password"
             id="password"
             className="fadeIn third"
-            name="login"
+            name="password"
             placeholder="Contraseña"
             onChange={(e) => setPassword(e.target.value)}
           />
