@@ -9,4 +9,12 @@ module.exports = {
     ignoreBuildErrors: true,
   },
   pageExtensions: ["page.tsx", "page.ts", "page.jsx", "page.js"],
+  async rewrites() {
+    return [
+      {
+        source: "/",
+        destination: "/login",
+      },
+    ];
+  },
 };
