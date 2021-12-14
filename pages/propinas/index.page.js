@@ -32,6 +32,7 @@ const Option = (props) => {
 const Propina = () => {
   const [showModalEnviarPropinas, setShowModalEnviarPropinas] =
     React.useState(false);
+  const [tipsSent, setTipsSent] = React.useState(false);
   const isDevelopment = process.env.NODE_ENV === "development";
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = React.useState([]);
@@ -78,6 +79,7 @@ const Propina = () => {
       setOptionsComercios(comercios);
     }
 
+    setTipsSent(false);
     setData(jobs);
     setDataBackup(jobs);
     setIsLoading(false);
@@ -206,11 +208,11 @@ const Propina = () => {
         <Col>
           <Button
             className={`btn btn-primary ${
-              isLoading || !data.length ? "disabled" : ""
+              isLoading || !data.length || tipsSent ? "disabled" : ""
             }`}
             onClick={() => setShowModalEnviarPropinas(true)}
           >
-            Enviar todas las propinas
+            Enviar propinas
           </Button>
         </Col>
 
@@ -371,6 +373,7 @@ const Propina = () => {
         isOpen={showModalEnviarPropinas}
         onClose={() => setShowModalEnviarPropinas(false)}
         data={data}
+        setTipsSent={setTipsSent}
       />
     </Layout>
   );

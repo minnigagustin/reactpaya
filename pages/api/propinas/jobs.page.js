@@ -1,6 +1,7 @@
 import nextConnect from "next-connect";
 import api from "../../../components/api";
 import _ from "lodash";
+import { getDeliveryFee } from "../../../components/utils";
 
 const baseUrl = `${process.env.NEXT_PUBLIC_MOODLE_WEBSERVICE_URL}/webservice/rest/server.php`;
 
@@ -87,7 +88,3 @@ apiRoute.get(async (req, res) => {
 });
 
 export default apiRoute;
-
-const getDeliveryFee = (custom_fields) => {
-  return custom_fields.find((field) => field.label === "Delivery_Fee")?.data;
-};
