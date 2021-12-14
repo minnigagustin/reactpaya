@@ -233,9 +233,9 @@ const Propina = () => {
               <ExcelColumn
                 label="Nombre"
                 value={(col) =>
-                  col.custom_field[0].data
-                    ? col.custom_field[0].data
-                    : col.custom_field[1].data
+                  col.fields.custom_field[0].data
+                    ? col.fields.custom_field[0].data
+                    : col.fields.custom_field[1].data
                 }
               />
 
