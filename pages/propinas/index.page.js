@@ -8,7 +8,9 @@ import { default as ReactSelect, components } from "react-select";
 import Layout from "../../components/layout";
 import { Row, Col, Button } from "reactstrap";
 
-import ModalEliminar from "./ModalEliminar";
+import ModalEnviarNotificacion from "./ModalEnviarNotificacion";
+import ModalEnviarPropinas from "./ModalEnviarPropinas";
+
 import ModalInsertar from "./ModalInsertar";
 
 import api from "../../components/api";
@@ -21,11 +23,6 @@ const Option = (props) => {
   return (
     <div>
       <components.Option {...props}>
-        <input
-          type="checkbox"
-          checked={props.isSelected}
-          onChange={() => null}
-        />{" "}
         <label>{props.label}</label>
       </components.Option>
     </div>
@@ -33,16 +30,23 @@ const Option = (props) => {
 };
 
 const Propina = () => {
+  const [showModalEnviarPropinas, setShowModalEnviarPropinas] =
+    React.useState(false);
   const isDevelopment = process.env.NODE_ENV === "development";
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = React.useState([]);
   const [dataBackup, setDataBackup] = React.useState([]);
   const [total, setTotal] = React.useState(0);
   const [modalInsertar, setModalInsertar] = React.useState(false);
-  const [modalEliminar, setModalEliminar] = React.useState(false);
-  const [dateFilter, setDateFilter] = React.useState(new Date());
+  const [modalEnviarNotificacion, setModalEnviarNotificacion] =
+    React.useState(false);
+
+  const [startDateFilter, setStartDateFilter] = React.useState(
+    moment().subtract(7, "days")
+  );
+  const [endDateFilter, setEndDateFilter] = React.useState(moment());
   const [searchFilter, setSearchFilter] = React.useState("");
-  const [comerciosFilter, setComerciosFilter] = React.useState([]);
+  const [comercioFilter, setComercioFilter] = React.useState();
   const [optionsComercios, setOptionsComercios] = React.useState([]);
   const [form, setForm] = React.useState({
     id: "",
@@ -62,77 +66,20 @@ const Propina = () => {
 
   const fetchJobs = async () => {
     setIsLoading(true);
-    const job_and_fleet_details = await api.get_job_and_fleet_details({
-      team_id: "449045",
-      date: dateFilter
-        ? moment(dateFilter).format("YYYY-MM-DD")
-        : moment().format("YYYY-MM-DD"),
-      ignore_fleets: "0",
-      search_string: !!searchFilter ? searchFilter : "",
+    const { jobs, comercios } = await api.get_jobs({
+      start_date: startDateFilter.format("YYYY-MM-DD"),
+      end_date: endDateFilter.format("YYYY-MM-DD"),
+      search: !!searchFilter ? searchFilter : null,
+      comercio: comercioFilter ? comercioFilter.value : null,
     });
 
-    const jobList = _.get(job_and_fleet_details.data, "data.teams.449045.jobs");
-    const jobsNumbers = _.map(jobList, "job_id");
-    const jobsNumbersSplit = _.chunk(jobsNumbers, 100);
+    setComercioFilter();
+    if (!comercioFilter) {
+      setOptionsComercios(comercios);
+    }
 
-    const job_details = await Promise.all(
-      jobsNumbersSplit.map((jobNumberArray) =>
-        api.get_job_details({
-          job_ids: jobNumberArray,
-          include_task_history: 0,
-        })
-      )
-    );
-    const jobsListDetails = _.flatten(
-      job_details.map((job_details) => job_details.data)
-    );
-    const resultadoFilteredByJobStatus = _.filter(jobsListDetails, {
-      job_status: 2,
-    });
-    const resultadoFilteredByOrderId = _.filter(
-      resultadoFilteredByJobStatus,
-      "order_id"
-    );
-    const resultadoFilteredByJobType = _.filter(resultadoFilteredByOrderId, {
-      job_type: 1,
-    });
-    const resultadoFilteredByItemLabel = resultadoFilteredByJobType.filter(
-      (item) => item.custom_field[11].label !== "Items"
-    );
-    const resultadoFilteredByComercio = resultadoFilteredByItemLabel.filter(
-      (item) => {
-        console.info("FILTRO", item.job_pickup_name, comerciosFilter);
-        return comerciosFilter.length > 0
-          ? !!comerciosFilter.find(
-              (comercio) => comercio.value === item.job_pickup_name
-            )
-          : true;
-      }
-    );
-    const resultadoWithFleetName = resultadoFilteredByComercio.map((res) => {
-      const fleetName = jobList.find(
-        (job) => job.job_id === res.job_id
-      ).fleet_name;
-      return { ...res, fleet_name: fleetName };
-    });
-    console.info({ resultadoWithFleetName });
-    const listOfComercios = [
-      ...new Set(
-        resultadoWithFleetName.map((item) => ({
-          value: item.job_pickup_name,
-          label: item.job_pickup_name,
-        }))
-      ),
-    ];
-    const uniqComercios = _.uniqBy(
-      listOfComercios,
-      (comercio) => comercio.label
-    );
-    setOptionsComercios(_.uniq(uniqComercios));
-    setComerciosFilter(_.uniq(uniqComercios));
-
-    setData(resultadoWithFleetName);
-    setDataBackup(resultadoWithFleetName);
+    setData(jobs);
+    setDataBackup(jobs);
     setIsLoading(false);
   };
 
@@ -144,7 +91,9 @@ const Propina = () => {
     });
   };
 
-  const selectNotification = async (order) => {
+  const enviarPropina = async (order) => {
+    if (!window.confirm("Estás seguro que deseas enviar el monto?")) return;
+
     const datowallet = {
       fleet_id: order.fleet_id,
       amount: (
@@ -161,7 +110,6 @@ const Propina = () => {
 
     const fleet_profile = await api.view_fleet_profile(order.fleet_id);
     setData((data) => {
-      console.info({ data, order });
       return data.filter((job) => {
         return job.job_id !== order.job_id;
       });
@@ -180,7 +128,9 @@ const Propina = () => {
           ).toFixed(2)
         : 0,
     });
-    setModalEliminar((modalEliminar) => !modalEliminar);
+    setModalEnviarNotificacion(
+      (modalEnviarNotificacion) => !modalEnviarNotificacion
+    );
     setIsLoading(false);
   };
 
@@ -194,16 +144,35 @@ const Propina = () => {
     setSearchFilter(e.target.value);
   };
 
+  const getDeliveryFee = (custom_fields) => {
+    return custom_fields.find((field) => field.label === "Delivery_Fee")?.data;
+  };
+
   return (
     <Layout title="Propinas">
       <Row className="d-flex py-4 align-items-end">
         <Col>
-          Fecha:
+          Desde:
           <br />
           <DatePicker
             customInput={<input className="form-control" />}
-            selected={dateFilter}
-            onChange={(date) => setDateFilter(date)}
+            selected={startDateFilter.valueOf()}
+            onChange={(date) => {
+              setStartDateFilter(moment(date));
+              setOptionsComercios();
+            }}
+          />
+        </Col>
+        <Col>
+          Hasta:
+          <br />
+          <DatePicker
+            customInput={<input className="form-control" />}
+            selected={endDateFilter.valueOf()}
+            onChange={(date) => {
+              setEndDateFilter(moment(date));
+              setOptionsComercios();
+            }}
           />
         </Col>
         <Col>
@@ -220,15 +189,13 @@ const Propina = () => {
           <br />
           <ReactSelect
             options={optionsComercios}
-            isMulti
-            closeMenuOnSelect={false}
-            hideSelectedOptions={false}
             components={{ Option }}
             onChange={(selected) => {
-              setComerciosFilter(selected);
+              setComercioFilter(selected);
             }}
-            allowSelectAll={true}
-            value={comerciosFilter}
+            loading={isLoading}
+            value={comercioFilter}
+            isDisabled={!optionsComercios}
           />
         </Col>
         <Col>
@@ -237,10 +204,26 @@ const Propina = () => {
           </Button>
         </Col>
         <Col>
+          <Button
+            className={`btn btn-primary ${
+              isLoading || !data.length ? "disabled" : ""
+            }`}
+            onClick={() => setShowModalEnviarPropinas(true)}
+          >
+            Enviar todas las propinas
+          </Button>
+        </Col>
+
+        <Col>
           <ExcelFile
             filename="reporte"
             element={
-              <Button className="btn btn-primary" href="#">
+              <Button
+                className={`btn btn-primary ${
+                  isLoading || !data.length ? "disabled" : ""
+                }`}
+                href="#"
+              >
                 Exportar Excel <i className="bi bi-download"></i>
               </Button>
             }
@@ -258,31 +241,28 @@ const Propina = () => {
 
               <ExcelColumn
                 label="Venta Total sin descuento"
-                value={(col) =>
-                  col.custom_field[11].label !== "Items"
-                    ? "$" + col.custom_field[11].data
-                    : "SIN PROPINA"
-                }
+                value={(col) => {
+                  const data = getDeliveryFee(col.fields.custom_field);
+                  return data ? "$" + data : "SIN PROPINA";
+                }}
               />
               <ExcelColumn
                 label="Venta total con descuento"
-                value={(col) =>
-                  col.custom_field[11].label !== "Items"
-                    ? "$" + ((col.custom_field[11].data * 3.5) / 100).toFixed(2)
-                    : "SIN PROPINA"
-                }
+                value={(col) => {
+                  const data = getDeliveryFee(col.fields.custom_field);
+                  return !!data
+                    ? "$" + ((data * 3.5) / 100).toFixed(2)
+                    : "SIN PROPINA";
+                }}
               />
               <ExcelColumn
                 label="Recibe"
-                value={(col) =>
-                  col.custom_field[11].label !== "Items"
-                    ? "$" +
-                      (
-                        col.custom_field[11].data -
-                        (col.custom_field[11].data * 3.5) / 100
-                      ).toFixed(2)
-                    : "SIN PROPINA"
-                }
+                value={(col) => {
+                  const data = getDeliveryFee(col.fields.custom_field);
+                  return !!data
+                    ? "$" + (data - (data * 3.5) / 100).toFixed(2)
+                    : "SIN PROPINA";
+                }}
               />
               <ExcelColumn label="Motorizado" value="fleet_name" />
             </ExcelSheet>
@@ -293,67 +273,76 @@ const Propina = () => {
       <DataTable
         columns={[
           {
-            name: "Order ID",
+            name: "Job ID",
             sortable: true,
             cell: (row) => row["job_id"],
           },
           {
             name: "Nombre",
             sortable: true,
-            cell: (row) => <div>{row.job_pickup_name}</div>,
+            cell: (row) => {
+              return <div>{row.job_pickup_name}</div>;
+            },
           },
           {
             name: "Propina",
             sortable: true,
-            cell: (row) => (
-              <div>
-                {row.custom_field[11].label !== "Items"
-                  ? "$" + row.custom_field[11].data
-                  : "SIN PROPINA"}
-              </div>
-            ),
+            cell: (row) => {
+              const data = getDeliveryFee(row.fields.custom_field);
+              return <div>{!!data ? "$" + data : "SIN PROPINA"}</div>;
+            },
           },
           {
             name: "3.5%",
             sortable: true,
-            cell: (row) => (
-              <div>
-                {row.custom_field[11].label !== "Items"
-                  ? "$" + ((row.custom_field[11].data * 3.5) / 100).toFixed(2)
-                  : "SIN PROPINA"}
-              </div>
-            ),
+            cell: (row) => {
+              const data = getDeliveryFee(row.fields.custom_field);
+              return (
+                <div>
+                  {!!data
+                    ? "$" + ((data * 3.5) / 100).toFixed(2)
+                    : "SIN PROPINA"}
+                </div>
+              );
+            },
           },
           {
             name: "Recibe",
             sortable: true,
-            cell: (row) => (
-              <div>
-                {row.custom_field[11].label !== "Items"
-                  ? "$" +
-                    (
-                      row.custom_field[11].data -
-                      (row.custom_field[11].data * 3.5) / 100
-                    ).toFixed(2)
-                  : "SIN PROPINA"}
-              </div>
-            ),
+            cell: (row) => {
+              const data = getDeliveryFee(row.fields.custom_field);
+              return (
+                <div>
+                  {!!data
+                    ? "$" + (data - (data * 3.5) / 100).toFixed(2)
+                    : "SIN PROPINA"}
+                </div>
+              );
+            },
           },
           {
             name: "Motorizado",
             sortable: true,
-            cell: (row) => (
-              <div>
-                <button
-                  className="btn btn-success"
-                  onClick={() => {
-                    selectNotification(row);
-                  }}
-                >
-                  {row.fleet_name}
-                </button>
-              </div>
-            ),
+            cell: (row) => <div>{row.fleet_name}</div>,
+          },
+          {
+            name: "Acción",
+            sortable: true,
+            cell: (row) => {
+              const deliveryFee = getDeliveryFee(row.fields.custom_field);
+              return (
+                <div>
+                  <button
+                    className="btn btn-success"
+                    onClick={() => enviarPropina(row)}
+                  >
+                    Enviar $
+                    {(deliveryFee - (deliveryFee * 3.5) / 100).toFixed(2)} a
+                    wallet
+                  </button>
+                </div>
+              );
+            },
           },
         ]}
         data={data}
@@ -371,12 +360,17 @@ const Propina = () => {
         tipoModal={tipoModal}
         setIsLoading={setIsLoading}
       />
-      <ModalEliminar
+      <ModalEnviarNotificacion
         noti={noti}
-        isOpen={modalEliminar}
-        setModalEliminar={setModalEliminar}
+        isOpen={modalEnviarNotificacion}
+        setModalEnviarNotificacion={setModalEnviarNotificacion}
         setIsLoading={setIsLoading}
         total={total}
+      />
+      <ModalEnviarPropinas
+        isOpen={showModalEnviarPropinas}
+        onClose={() => setShowModalEnviarPropinas(false)}
+        data={data}
       />
     </Layout>
   );

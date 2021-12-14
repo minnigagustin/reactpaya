@@ -2,7 +2,7 @@ import { Modal, ModalBody, ModalFooter } from "reactstrap";
 
 import api from "../../components/api";
 
-const ModalEliminar = ({ noti, isOpen, setModalEliminar, setIsLoading, total }) => {
+const ModalEnviarNotificacion = ({ noti, isOpen, setModalEliminar, setIsLoading, total }) => {
   const enviarNotificacion = async () => {
     setIsLoading(true);
     const notiid = [];
@@ -16,7 +16,6 @@ const ModalEliminar = ({ noti, isOpen, setModalEliminar, setIsLoading, total }) 
         total,
     };
     const notification = await api.send_notification(dato);
-    console.info({ notification });
     setModalEliminar((modalEliminar) => !modalEliminar);
     setIsLoading(false);
   };
@@ -46,4 +45,4 @@ const ModalEliminar = ({ noti, isOpen, setModalEliminar, setIsLoading, total }) 
   );
 };
 
-export default ModalEliminar;
+export default ModalEnviarNotificacion;

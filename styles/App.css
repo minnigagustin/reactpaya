@@ -152,7 +152,6 @@ body {
 /* BASIC */
 
 html {
-  background-color: #56baed;
 }
 
 body {
@@ -406,7 +405,6 @@ input[type="password"]:placeholder {
   bottom: -10px;
   width: 0;
   height: 2px;
-  background-color: #56baed;
   content: "";
   transition: width 0.2s;
 }
