@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseUrl = "http://localhost:3000/api/propinas";
+const baseUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/propinas`;
 
 const createAxios = () => {
   axios.create();
