@@ -66,11 +66,9 @@ class Automatizacion extends Component {
       date: moment().subtract(1, "days").format("YYYY-MM-DD"),
     };
     axios.post(url, dato, headers).then((response) => {
-      // console.log(response.data);
       const jobList = _.get(response.data, "data.teams.449045.jobs");
       const jobsNumbers = _.map(jobList, "job_id");
       const jobsNumbersSplit = _.chunk(jobsNumbers, 100);
-      // console.log(jobsNumbersSplit)
 
       var arraynuevo = [];
 
@@ -85,10 +83,8 @@ class Automatizacion extends Component {
           const jobsListDetails = _.get(response.data, "data");
 
           arraynuevo = _.concat(arraynuevo, jobsListDetails);
-          //console.log(arraynuevo);
           this.setState({ jobArray: arraynuevo });
         });
-        console.log(this.state.jobArray);
       }
     });
   };
@@ -99,13 +95,10 @@ class Automatizacion extends Component {
     const result = _.uniqBy(resultad, "order_id");
 
     var date = new Date();
-    console.log(date.getDate() - 1);
 
     for (let i = 0; i < result.length; i++) {
       const job = result[i];
-      console.log(result[i]);
       const orderDistance = String(job.total_distance_travelled);
-      console.log(job);
       if (orderDistance === "null") {
         const urlpre = "https://api.tookanapp.com/v2/get_fare_estimate";
         const datopre = {
@@ -126,8 +119,6 @@ class Automatizacion extends Component {
         axios
           .post(urlpre, datopre, headers)
           .then((response) => {
-            console.log(response.data.data.estimated_fare);
-
             const urldato =
               "https://api.tookanapp.com/v2/fleet/wallet/create_transaction";
             const datowallet = {

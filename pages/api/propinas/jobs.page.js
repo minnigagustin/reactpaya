@@ -32,10 +32,8 @@ apiRoute.get(async (req, res) => {
         requested_page: 1,
       });
 
-      console.info({ count: unfilteredJobs.length });
       const jobs = unfilteredJobs.filter((job) => {
         const deliveryFee = getDeliveryFee(job.fields.custom_field);
-        console.info({ deliveryFee });
         return deliveryFee !== "-" && deliveryFee !== "";
       });
       //   const jobsNumbers = _.map(job_and_fleet_details, "job_id");
@@ -63,7 +61,6 @@ apiRoute.get(async (req, res) => {
 
       const comercios = _.uniqBy(
         jobs.map((job) => {
-          //   console.info({ job });
           return {
             value: job.job_pickup_name,
             label: job.job_pickup_name,

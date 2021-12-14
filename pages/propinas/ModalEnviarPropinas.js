@@ -19,7 +19,6 @@ const ModalEnviarPropinas = ({ isOpen, onClose, data }) => {
           wallet_type: 2,
           description: "Propina del pedido: " + job.job_id,
         };
-        console.info({ env: process.env.NODE_ENV });
         return process.env.NODE_ENV === "development"
           ? new Promise((resolve) => {
               setTimeout(() => {
@@ -47,9 +46,6 @@ const ModalEnviarPropinas = ({ isOpen, onClose, data }) => {
             const deliveryFee = job.fields.custom_field.find(
               (field) => field.label === "Delivery_Fee"
             )?.data;
-            console.info({
-              deliveryFee: job.fields.custom_field,
-            });
             return (
               <div>
                 {job.fleet_name}: $

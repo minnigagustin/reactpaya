@@ -10,7 +10,6 @@ const createAxios = () => {
 
 const api = {
   get_jobs: (data) => {
-    console.info({ data });
     return createAxios()
       .get(`${baseUrl}/jobs`, {
         params: data,
