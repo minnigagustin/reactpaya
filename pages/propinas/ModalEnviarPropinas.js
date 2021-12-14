@@ -1,41 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NProgress from "nprogress";
 import { getDeliveryFee } from "../../components/utils";
-import { Modal, ModalBody, ModalFooter } from "reactstrap";
+import { Row, Col, Modal, ModalBody, ModalFooter } from "reactstrap";
 import api from "../../components/api";
 import { toast } from "react-toastify";
-
+import { Formik, FieldArray, Form } from "formik";
 const ModalEnviarPropinas = ({ isOpen, onClose, data, setTipsSent }) => {
-  const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [sendNotifications, setSendNotifications] = useState(false);
-
-  const allProgress = (proms) => {
-    let d = 0;
-    setProgress(0);
-    setLoading(true);
-    for (const p of proms) {
-      p.then(() => {
-        d++;
-        const p = (d * 100) / proms.length;
-        console.log(`% Done = ${p.toFixed(2)}`);
-        setProgress(p.toFixed(2));
-      });
-    }
-    return Promise.all(proms);
-  };
-
-  const enviarPropinas = async () => {
+  const [initialJobs, setInitialJobs] = useState([]);
+  const enviarPropinas = async (values) => {
     NProgress.start();
     try {
-      setLoading(true);
-      const envios = data.map((job) => {
-        const deliveryFee = getDeliveryFee(job.fields.custom_field);
+      const envios = values.jobs.map((job) => {
         const transaction = {
           fleet_id: job.fleet_id,
-          amount: (deliveryFee.data - (deliveryFee.data * 3.5) / 100).toFixed(
-            2
-          ),
+          amount: job.amount,
           transaction_type: 2,
           reference_id: String(job.job_id),
           wallet_type: 2,
@@ -60,11 +39,9 @@ const ModalEnviarPropinas = ({ isOpen, onClose, data, setTipsSent }) => {
               fleet_ids: job.fleet_id,
               message:
                 "Hola " +
-                fleet_profile.data.data.fleet_details[0].first_name +
-                " " +
-                fleet_profile.data.data.fleet_details[0].last_name +
+                job.fleet_name +
                 ", hemos realizado una transferencia a tu cuenta por $" +
-                (deliveryFee - (deliveryFee * 3.5) / 100).toFixed(2),
+                job.amount,
             };
             promises.push(api.send_notification(notification));
           }
@@ -85,7 +62,6 @@ const ModalEnviarPropinas = ({ isOpen, onClose, data, setTipsSent }) => {
       });
       await Promise.all(envios);
       NProgress.done();
-      setLoading(false);
       onClose(false);
       toast("Las propinas han sido enviadas", {
         variant: "success",
@@ -97,42 +73,98 @@ const ModalEnviarPropinas = ({ isOpen, onClose, data, setTipsSent }) => {
     }
   };
 
+  useEffect(() => {
+    setInitialJobs(
+      data.map((job) => {
+        const deliveryFee = getDeliveryFee(job.fields.custom_field);
+        return {
+          fleet_id: job.fleet_id,
+          job_id: job.job_id,
+          amount: (deliveryFee - (deliveryFee * 3.5) / 100).toFixed(2),
+          fleet_name: job.fleet_name,
+          job_pickup_name: job.job_pickup_name,
+        };
+      })
+    );
+  }, [data]);
+
   return (
     <Modal isOpen={isOpen} centered={true}>
-      <ModalBody>
-        <h4>Desea enviar la siguientes propinas?</h4>
-        <div className="py-4 px-2">
-          <input
-            type="checkbox"
-            onChange={(e) => {
-              console.info({ e });
-              setSendNotifications(e);
-            }}
-          />{" "}
-          <i>Enviar notificaciónes a los motoristas</i>
-        </div>
-        <div className="overflow-auto w-auto" style={{ height: "300px" }}>
-          {data.map((job, index) => {
-            const deliveryFee = job.fields.custom_field.find(
-              (field) => field.label === "Delivery_Fee"
-            )?.data;
-            return (
-              <div>
-                {job.fleet_name}: $
-                {(deliveryFee - (deliveryFee * 3.5) / 100).toFixed(2)}
+      <Formik
+        initialValues={{
+          jobs: initialJobs,
+        }}
+        enableReinitialize
+        validateOnChange={false}
+        validateOnBlur={false}
+        validateOnMount={false}
+        onSubmit={enviarPropinas}
+        render={(formik) => (
+          <>
+            <ModalBody>
+              <h4>Desea enviar la siguientes propinas?</h4>
+              <div className="py-4 px-2">
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    console.info({ e });
+                    setSendNotifications(e);
+                  }}
+                />{" "}
+                <i>Enviar notificaciónes a los motoristas</i>
               </div>
-            );
-          })}
-        </div>
-      </ModalBody>
-      <ModalFooter>
-        <button className="btn btn-danger" onClick={() => onClose(false)}>
-          Salir
-        </button>
-        <button className="btn btn-success" onClick={enviarPropinas}>
-          Enviar
-        </button>
-      </ModalFooter>
+              <div
+                style={{
+                  height: "300px",
+                  overflowY: "auto",
+                  overflowX: "hidden",
+                }}
+              >
+                <FieldArray
+                  name="supportFiles"
+                  validateOnChange={false}
+                  render={(arrayHelpers) => (
+                    <>
+                      {formik.values.jobs?.map((job, index) => {
+                        return (
+                          <Row className="justify-content-start my-2">
+                            <Col className="align-self-center col-8">
+                              {job.fleet_name}: <br />
+                              <small style={{ fontSize: "11px" }}>
+                                #{job.job_id} - {job.job_pickup_name}
+                              </small>
+                            </Col>
+                            <Col className="align-self-center col-4">
+                              <input
+                                className=""
+                                type="text"
+                                key={`jobs-${index}`}
+                                id={`jobs.${index}.amount`}
+                                name={`jobs.${index}.amount`}
+                                onChange={formik.handleChange}
+                                value={job.amount}
+                                maxLength={256}
+                              />
+                            </Col>
+                          </Row>
+                        );
+                      })}
+                    </>
+                  )}
+                />
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <button className="btn btn-danger" onClick={() => onClose(false)}>
+                Salir
+              </button>
+              <button className="btn btn-success" onClick={formik.handleSubmit}>
+                Enviar
+              </button>
+            </ModalFooter>
+          </>
+        )}
+      />
     </Modal>
   );
 };
