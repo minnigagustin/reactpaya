@@ -79,7 +79,7 @@ const Propina = () => {
       setOptionsComercios(comercios);
     }
 
-    setTipsSent(false);
+    setTipsSent(false)
     setData(jobs);
     setDataBackup(jobs);
     setIsLoading(false);
