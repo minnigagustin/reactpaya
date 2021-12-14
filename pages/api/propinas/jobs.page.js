@@ -13,15 +13,11 @@ const apiRoute = nextConnect({
 });
 
 apiRoute.get(async (req, res) => {
-  // if (!parseInt(String(courseId))) {
-  //   return ApiResponse(res, 400, { error: 'Wrong courseId parameter' });
-  // }
-
   switch (req.method) {
     case "GET":
       const { start_date, end_date, search, comercio } = req.query;
 
-      const { data: unfilteredJobs } = await api.get_all_tasks({
+      let { data: jobs } = await api.get_all_tasks({
         team_id: "449045",
         job_status: 2,
         job_type: 1,
@@ -32,10 +28,27 @@ apiRoute.get(async (req, res) => {
         requested_page: 1,
       });
 
-      const jobs = unfilteredJobs.filter((job) => {
+      jobs = jobs.filter((job) => {
         const deliveryFee = getDeliveryFee(job.fields.custom_field);
         return deliveryFee !== "-" && deliveryFee !== "";
       });
+
+      if (!!search) {
+        jobs = jobs.filter(
+          (job) =>
+            String(job.job_id) === search.toLowerCase() ||
+            job.job_pickup_name.toLowerCase().includes(search.toLowerCase()) ||
+            job.fleet_name.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+
+      if (!!comercio) {
+        jobs = jobs.filter((item) => {
+          return comercio
+            .toLowerCase()
+            .includes(item.job_pickup_name.toLowerCase());
+        });
+      }
       //   const jobsNumbers = _.map(job_and_fleet_details, "job_id");
       //   const jobsNumbersSplit = _.chunk(jobsNumbers, 100);
       //   const job_details = await Promise.all(
@@ -49,9 +62,7 @@ apiRoute.get(async (req, res) => {
 
       //   const jobs = _.flatten(
       //     job_details.map((job_details) => job_details.data)
-      //   ).filter((item) => {
-      //     return !!comercio ? comercio === item.job_pickup_name : true;
-      //   });
+      //   );
       // .map((res) => {
       //   const job_pickup_name = jobList.find(
       //     (job) => job.job_id === res.job_id
